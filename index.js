@@ -8,8 +8,8 @@ var Q = require('q');
 var request = require('request');
 var xml2js = require('xml2js');
 
-var testURL = 'https://demo.myvirtualmerchant.com/VirtualMerchantDemo/processxml.do';
-var productionURL = 'https://www.myvirtualmerchant.com/VirtualMerchant/processxml.do';
+var testURL = 'https://api.demo.convergepay.com/VirtualMerchantDemo/processxml.do';
+var productionURL = 'https://api.convergepay.com/VirtualMerchant/processxml.do';
 
 
 function Converge(merchantId, userId, pin, testMode) {
