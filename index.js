@@ -9,7 +9,7 @@ var request = require('request');
 var xml2js = require('xml2js');
 
 var testURL = 'https://api.demo.convergepay.com/VirtualMerchantDemo/processxml.do';
-var productionURL = 'https://api.convergepay.com/VirtualMerchant/accountxml.do';
+var productionURL = 'https://api.convergepay.com/VirtualMerchant/processxml.do';
 
 
 function Converge(merchantId, userId, pin, testMode) {
