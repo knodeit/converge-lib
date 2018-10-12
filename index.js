@@ -4,7 +4,6 @@
 
 'use strict';
 
-var Q = require('q');
 var request = require('request');
 var xml2js = require('xml2js');
 
@@ -21,224 +20,222 @@ function Converge(merchantId, userId, pin, testMode) {
 
 
 Converge.prototype.collectPayment = function (firstName, lastName, email, cardNumber, expirationMonth, expirationYear, cvv, amount, invoiceNumber, description) {
+    return new Promise((resolve, reject) => {
+        //build txn node
+        var xmlTransaction = '';
+        xmlTransaction += 'xmldata=<txn>\n';
+        xmlTransaction += '<ssl_add_token>Y</ssl_add_token>\n'
+        xmlTransaction += '<ssl_merchant_id>' + this.ssl_merchant_id + '</ssl_merchant_id>\n';
+        xmlTransaction += '<ssl_user_id>' + this.ssl_user_id + '</ssl_user_id>\n';
+        xmlTransaction += '<ssl_pin>' + this.ssl_pin + '</ssl_pin>\n';
+        xmlTransaction += '<ssl_test_mode>' + this.ssl_test_mode + '</ssl_test_mode>\n';
+        xmlTransaction += '<ssl_description>' + description + '</ssl_description> \n';
+        xmlTransaction += '<ssl_show_form>false</ssl_show_form>'
+        xmlTransaction += '<ssl_transaction_type>ccsale</ssl_transaction_type>\n';
+        xmlTransaction += '<ssl_card_number>' + cardNumber + '</ssl_card_number>\n';
+        xmlTransaction += '<ssl_exp_date>' + expirationMonth + expirationYear + '</ssl_exp_date>\n';
+        xmlTransaction += '<ssl_amount>' + amount + '</ssl_amount>\n';
+        xmlTransaction += '<ssl_result_format>HTML</ssl_result_format>\n';
+        xmlTransaction += '<ssl_cvv2cvc2_indicator>1</ssl_cvv2cvc2_indicator>\n';
+        xmlTransaction += '<ssl_cvv2cvc2>' + cvv + '</ssl_cvv2cvc2>\n';
+        xmlTransaction += '<ssl_first_name>' + firstName + '</ssl_first_name>\n';
+        xmlTransaction += '<ssl_last_name>' + lastName + '</ssl_last_name>\n';
+        xmlTransaction += '<ssl_email>' + email + '</ssl_email>\n';
+        xmlTransaction += '<ssl_invoice_number>' + invoiceNumber + '</ssl_invoice_number>\n';
+        xmlTransaction += '</txn>\n';
 
-    var deferred = Q.defer();
-    //build txn node
-    var xmlTransaction = '';
-    xmlTransaction += 'xmldata=<txn>\n';
-    xmlTransaction += '<ssl_add_token>Y</ssl_add_token>\n'
-    xmlTransaction += '<ssl_merchant_id>' + this.ssl_merchant_id + '</ssl_merchant_id>\n';
-    xmlTransaction += '<ssl_user_id>' + this.ssl_user_id + '</ssl_user_id>\n';
-    xmlTransaction += '<ssl_pin>' + this.ssl_pin + '</ssl_pin>\n';
-    xmlTransaction += '<ssl_test_mode>' + this.ssl_test_mode + '</ssl_test_mode>\n';
-    xmlTransaction += '<ssl_description>' + description + '</ssl_description> \n';
-    xmlTransaction += '<ssl_show_form>false</ssl_show_form>'
-    xmlTransaction += '<ssl_transaction_type>ccsale</ssl_transaction_type>\n';
-    xmlTransaction += '<ssl_card_number>' + cardNumber + '</ssl_card_number>\n';
-    xmlTransaction += '<ssl_exp_date>' + expirationMonth + expirationYear + '</ssl_exp_date>\n';
-    xmlTransaction += '<ssl_amount>' + amount + '</ssl_amount>\n';
-    xmlTransaction += '<ssl_result_format>HTML</ssl_result_format>\n';
-    xmlTransaction += '<ssl_cvv2cvc2_indicator>1</ssl_cvv2cvc2_indicator>\n';
-    xmlTransaction += '<ssl_cvv2cvc2>' + cvv + '</ssl_cvv2cvc2>\n';
-    xmlTransaction += '<ssl_first_name>' + firstName + '</ssl_first_name>\n';
-    xmlTransaction += '<ssl_last_name>' + lastName + '</ssl_last_name>\n';
-    xmlTransaction += '<ssl_email>' + email + '</ssl_email>\n';
-    xmlTransaction += '<ssl_invoice_number>' + invoiceNumber + '</ssl_invoice_number>\n';
-    xmlTransaction += '</txn>\n';
 
+        var urlToPost = this.ssl_test_mode ? testURL : productionURL;
+        request.post({
+            url: urlToPost,
+            form: xmlTransaction
+        }, function (error, response, body) {
+            if (error) {
 
-    var urlToPost = this.ssl_test_mode ? testURL : productionURL;
-    request.post({
-        url: urlToPost,
-        form: xmlTransaction
-    }, function (error, response, body) {
-        if (error) {
-
-            return deferred.reject(error);
-        }
-        //console.log('response',response.body);
-        xml2js.parseString(body, function (err, results) {
-            if (err) {
-                return deferred.reject(err);
+                return reject(error);
             }
-            //clean the arrays
-            results = cleanXML(results);
-            return deferred.resolve(results);
+            //console.log('response',response.body);
+            xml2js.parseString(body, function (err, results) {
+                if (err) {
+                    return reject(err);
+                }
+                //clean the arrays
+                results = cleanXML(results);
+                return resolve(results);
+            });
         });
     });
-    return deferred.promise;
 };
 Converge.prototype.collectPaymentwithoutCVV = function (firstName, lastName, email, cardNumber, expirationMonth, expirationYear,  amount, invoiceNumber, description) {
+    return new Promise((resolve, reject) => {
+        //build txn node
+        var xmlTransaction = '';
+        xmlTransaction += 'xmldata=<txn>\n';
+        xmlTransaction += '<ssl_add_token>Y</ssl_add_token>\n'
+        xmlTransaction += '<ssl_merchant_id>' + this.ssl_merchant_id + '</ssl_merchant_id>\n';
+        xmlTransaction += '<ssl_user_id>' + this.ssl_user_id + '</ssl_user_id>\n';
+        xmlTransaction += '<ssl_pin>' + this.ssl_pin + '</ssl_pin>\n';
+        xmlTransaction += '<ssl_test_mode>' + this.ssl_test_mode + '</ssl_test_mode>\n';
+        xmlTransaction += '<ssl_description>' + description + '</ssl_description> \n';
+        xmlTransaction += '<ssl_show_form>false</ssl_show_form>'
+        xmlTransaction += '<ssl_transaction_type>ccsale</ssl_transaction_type>\n';
+        xmlTransaction += '<ssl_card_number>' + cardNumber + '</ssl_card_number>\n';
+        xmlTransaction += '<ssl_exp_date>' + expirationMonth + expirationYear + '</ssl_exp_date>\n';
+        xmlTransaction += '<ssl_amount>' + amount + '</ssl_amount>\n';
+        xmlTransaction += '<ssl_result_format>HTML</ssl_result_format>\n';
+        xmlTransaction += '<ssl_cvv2cvc2_indicator>0</ssl_cvv2cvc2_indicator>\n';
 
-    var deferred = Q.defer();
-    //build txn node
-    var xmlTransaction = '';
-    xmlTransaction += 'xmldata=<txn>\n';
-    xmlTransaction += '<ssl_add_token>Y</ssl_add_token>\n'
-    xmlTransaction += '<ssl_merchant_id>' + this.ssl_merchant_id + '</ssl_merchant_id>\n';
-    xmlTransaction += '<ssl_user_id>' + this.ssl_user_id + '</ssl_user_id>\n';
-    xmlTransaction += '<ssl_pin>' + this.ssl_pin + '</ssl_pin>\n';
-    xmlTransaction += '<ssl_test_mode>' + this.ssl_test_mode + '</ssl_test_mode>\n';
-    xmlTransaction += '<ssl_description>' + description + '</ssl_description> \n';
-    xmlTransaction += '<ssl_show_form>false</ssl_show_form>'
-    xmlTransaction += '<ssl_transaction_type>ccsale</ssl_transaction_type>\n';
-    xmlTransaction += '<ssl_card_number>' + cardNumber + '</ssl_card_number>\n';
-    xmlTransaction += '<ssl_exp_date>' + expirationMonth + expirationYear + '</ssl_exp_date>\n';
-    xmlTransaction += '<ssl_amount>' + amount + '</ssl_amount>\n';
-    xmlTransaction += '<ssl_result_format>HTML</ssl_result_format>\n';
-    xmlTransaction += '<ssl_cvv2cvc2_indicator>0</ssl_cvv2cvc2_indicator>\n';
-
-    xmlTransaction += '<ssl_first_name>' + firstName + '</ssl_first_name>\n';
-    xmlTransaction += '<ssl_last_name>' + lastName + '</ssl_last_name>\n';
-    xmlTransaction += '<ssl_email>' + email + '</ssl_email>\n';
-    xmlTransaction += '<ssl_invoice_number>' + invoiceNumber + '</ssl_invoice_number>\n';
-    xmlTransaction += '</txn>\n';
+        xmlTransaction += '<ssl_first_name>' + firstName + '</ssl_first_name>\n';
+        xmlTransaction += '<ssl_last_name>' + lastName + '</ssl_last_name>\n';
+        xmlTransaction += '<ssl_email>' + email + '</ssl_email>\n';
+        xmlTransaction += '<ssl_invoice_number>' + invoiceNumber + '</ssl_invoice_number>\n';
+        xmlTransaction += '</txn>\n';
 
 
-    var urlToPost = this.ssl_test_mode ? testURL : productionURL;
-    request.post({
-        url: urlToPost,
-        form: xmlTransaction
-    }, function (error, response, body) {
-        if (error) {
+        var urlToPost = this.ssl_test_mode ? testURL : productionURL;
+        request.post({
+            url: urlToPost,
+            form: xmlTransaction
+        }, function (error, response, body) {
+            if (error) {
 
-            return deferred.reject(error);
-        }
-        //console.log('response',response.body);
-        xml2js.parseString(body, function (err, results) {
-            if (err) {
-                return deferred.reject(err);
+                return reject(error);
             }
-            //clean the arrays
-            results = cleanXML(results);
-            return deferred.resolve(results);
+            //console.log('response',response.body);
+            xml2js.parseString(body, function (err, results) {
+                if (err) {
+                    return reject(err);
+                }
+                //clean the arrays
+                results = cleanXML(results);
+                return resolve(results);
+            });
         });
     });
-    return deferred.promise;
 };
 
 Converge.prototype.generateToken = function (firstName, lastName, email, cardNumber, expirationMonth, expirationYear, cvv) {
-    var deferred = Q.defer();
-    //build txn node
-    var xmlTransaction = '';
-    xmlTransaction += 'xmldata=<txn>\n';
-    xmlTransaction += '<ssl_add_token>Y</ssl_add_token>\n'
-    xmlTransaction += '<ssl_merchant_id>' + this.ssl_merchant_id + '</ssl_merchant_id>\n';
-    xmlTransaction += '<ssl_user_id>' + this.ssl_user_id + '</ssl_user_id>\n';
-    xmlTransaction += '<ssl_pin>' + this.ssl_pin + '</ssl_pin>\n';
-    xmlTransaction += '<ssl_test_mode>' + this.ssl_test_mode + '</ssl_test_mode>\n';
-    xmlTransaction += '<ssl_show_form>false</ssl_show_form>'
-    xmlTransaction += '<ssl_transaction_type>ccgettoken</ssl_transaction_type>\n';
-    xmlTransaction += '<ssl_card_number>' + cardNumber + '</ssl_card_number>\n';
-    xmlTransaction += '<ssl_exp_date>' + expirationMonth + expirationYear + '</ssl_exp_date>\n';
-    xmlTransaction += '<ssl_result_format>HTML</ssl_result_format>\n';
-    xmlTransaction += '<ssl_cvv2cvc2_indicator>1</ssl_cvv2cvc2_indicator>\n';
-    xmlTransaction += '<ssl_cvv2cvc2>' + cvv + '</ssl_cvv2cvc2>\n';
-    xmlTransaction += '<ssl_first_name>' + firstName + '</ssl_first_name>\n';
-    xmlTransaction += '<ssl_last_name>' + lastName + '</ssl_last_name>\n';
-    xmlTransaction += '<ssl_email>' + email + '</ssl_email>\n';
+    return new Promise((resolve, reject) => {
+        //build txn node
+        var xmlTransaction = '';
+        xmlTransaction += 'xmldata=<txn>\n';
+        xmlTransaction += '<ssl_add_token>Y</ssl_add_token>\n'
+        xmlTransaction += '<ssl_merchant_id>' + this.ssl_merchant_id + '</ssl_merchant_id>\n';
+        xmlTransaction += '<ssl_user_id>' + this.ssl_user_id + '</ssl_user_id>\n';
+        xmlTransaction += '<ssl_pin>' + this.ssl_pin + '</ssl_pin>\n';
+        xmlTransaction += '<ssl_test_mode>' + this.ssl_test_mode + '</ssl_test_mode>\n';
+        xmlTransaction += '<ssl_show_form>false</ssl_show_form>'
+        xmlTransaction += '<ssl_transaction_type>ccgettoken</ssl_transaction_type>\n';
+        xmlTransaction += '<ssl_card_number>' + cardNumber + '</ssl_card_number>\n';
+        xmlTransaction += '<ssl_exp_date>' + expirationMonth + expirationYear + '</ssl_exp_date>\n';
+        xmlTransaction += '<ssl_result_format>HTML</ssl_result_format>\n';
+        xmlTransaction += '<ssl_cvv2cvc2_indicator>1</ssl_cvv2cvc2_indicator>\n';
+        xmlTransaction += '<ssl_cvv2cvc2>' + cvv + '</ssl_cvv2cvc2>\n';
+        xmlTransaction += '<ssl_first_name>' + firstName + '</ssl_first_name>\n';
+        xmlTransaction += '<ssl_last_name>' + lastName + '</ssl_last_name>\n';
+        xmlTransaction += '<ssl_email>' + email + '</ssl_email>\n';
 
-    xmlTransaction += '</txn>\n';
+        xmlTransaction += '</txn>\n';
 
 
-    var urlToPost = this.ssl_test_mode ? testURL : productionURL;
-    request.post({
-        url: urlToPost,
-        form: xmlTransaction
-    }, function (error, response, body) {
-        if (error) {
-            return deferred.reject(error);
-        }
-        xml2js.parseString(body, function (err, results) {
-            if (err) {
-                return deferred.reject(err);
+        var urlToPost = this.ssl_test_mode ? testURL : productionURL;
+        request.post({
+            url: urlToPost,
+            form: xmlTransaction
+        }, function (error, response, body) {
+            if (error) {
+                return reject(error);
             }
-            //clean the arrays
-            results = cleanXML(results);
-            return deferred.resolve(results);
+            xml2js.parseString(body, function (err, results) {
+                if (err) {
+                    return reject(err);
+                }
+                //clean the arrays
+                results = cleanXML(results);
+                return resolve(results);
+            });
         });
     });
-    return deferred.promise;
 };
 
 
 Converge.prototype.collectPaymentByToken = function (token, amount, invoiceNumber, description) {
-    var deferred = Q.defer();
-    //build txn node
-    var xmlTransaction = '';
-    xmlTransaction += 'xmldata=<txn>\n';
-    xmlTransaction += '<ssl_add_token>Y</ssl_add_token>\n'
-    xmlTransaction += '<ssl_merchant_id>' + this.ssl_merchant_id + '</ssl_merchant_id>\n';
-    xmlTransaction += '<ssl_user_id>' + this.ssl_user_id + '</ssl_user_id>\n';
-    xmlTransaction += '<ssl_pin>' + this.ssl_pin + '</ssl_pin>\n';
-    xmlTransaction += '<ssl_test_mode>' + this.ssl_test_mode + '</ssl_test_mode>\n';
-    xmlTransaction += '<ssl_description>' + description + '</ssl_description> \n';
-    xmlTransaction += '<ssl_show_form>false</ssl_show_form>'
-    xmlTransaction += '<ssl_transaction_type>ccsale</ssl_transaction_type>\n';
-    xmlTransaction += '<ssl_amount>' + amount + '</ssl_amount>\n';
-    xmlTransaction += '<ssl_result_format>HTML</ssl_result_format>\n';
-    xmlTransaction += '<ssl_get_token>Y</ssl_get_token>\n';
-    xmlTransaction += '<ssl_token>' + token + '</ssl_token>\n';
-    xmlTransaction += '<ssl_invoice_number>' + invoiceNumber + '</ssl_invoice_number>\n';
-    xmlTransaction += '</txn>\n';
+    return new Promise((resolve, reject) => {
+        //build txn node
+        var xmlTransaction = '';
+        xmlTransaction += 'xmldata=<txn>\n';
+        xmlTransaction += '<ssl_add_token>Y</ssl_add_token>\n'
+        xmlTransaction += '<ssl_merchant_id>' + this.ssl_merchant_id + '</ssl_merchant_id>\n';
+        xmlTransaction += '<ssl_user_id>' + this.ssl_user_id + '</ssl_user_id>\n';
+        xmlTransaction += '<ssl_pin>' + this.ssl_pin + '</ssl_pin>\n';
+        xmlTransaction += '<ssl_test_mode>' + this.ssl_test_mode + '</ssl_test_mode>\n';
+        xmlTransaction += '<ssl_description>' + description + '</ssl_description> \n';
+        xmlTransaction += '<ssl_show_form>false</ssl_show_form>'
+        xmlTransaction += '<ssl_transaction_type>ccsale</ssl_transaction_type>\n';
+        xmlTransaction += '<ssl_amount>' + amount + '</ssl_amount>\n';
+        xmlTransaction += '<ssl_result_format>HTML</ssl_result_format>\n';
+        xmlTransaction += '<ssl_get_token>Y</ssl_get_token>\n';
+        xmlTransaction += '<ssl_token>' + token + '</ssl_token>\n';
+        xmlTransaction += '<ssl_invoice_number>' + invoiceNumber + '</ssl_invoice_number>\n';
+        xmlTransaction += '</txn>\n';
 
-    var urlToPost = this.ssl_test_mode ? testURL : productionURL;
-    request.post({
-        url: urlToPost,
-        form: xmlTransaction
-    }, function (error, response, body) {
-        if (error) {
-            return deferred.reject(error);
-        }
-        xml2js.parseString(body, function (err, results) {
-            if (err) {
-                return deferred.reject(err);
+        var urlToPost = this.ssl_test_mode ? testURL : productionURL;
+        request.post({
+            url: urlToPost,
+            form: xmlTransaction
+        }, function (error, response, body) {
+            if (error) {
+                return reject(error);
             }
-            //clean the arrays
-            results = cleanXML(results);
-            return deferred.resolve(results);
+            xml2js.parseString(body, function (err, results) {
+                if (err) {
+                    return reject(err);
+                }
+                //clean the arrays
+                results = cleanXML(results);
+                return resolve(results);
+            });
         });
     });
-    return deferred.promise;
 };
 
 Converge.prototype.verifyCard = function (cardNumber, expirationMonth, expirationYear, cvv ) {
-    var deferred = Q.defer();
-    //build txn node
-    var xmlTransaction = '';
-    xmlTransaction += 'xmldata=<txn>\n';
+    return new Promise((resolve, reject) => {
+        //build txn node
+        var xmlTransaction = '';
+        xmlTransaction += 'xmldata=<txn>\n';
 
-    xmlTransaction += '<ssl_merchant_id>' + this.ssl_merchant_id + '</ssl_merchant_id>\n';
-    xmlTransaction += '<ssl_user_id>' + this.ssl_user_id + '</ssl_user_id>\n';
-    xmlTransaction += '<ssl_pin>' + this.ssl_pin + '</ssl_pin>\n';
-    xmlTransaction += '<ssl_test_mode>' + this.ssl_test_mode + '</ssl_test_mode>\n';
-    xmlTransaction += '<ssl_show_form>false</ssl_show_form>'
-    xmlTransaction += '<ssl_transaction_type>ccverify</ssl_transaction_type>\n';
-    xmlTransaction += '<ssl_card_number>' + cardNumber + '</ssl_card_number>\n';
-    xmlTransaction += '<ssl_exp_date>' + expirationMonth + expirationYear + '</ssl_exp_date>\n';
-    xmlTransaction += '<ssl_result_format>HTML</ssl_result_format>\n';
-    xmlTransaction += '<ssl_cvv2cvc2_indicator>1</ssl_cvv2cvc2_indicator>\n';
-    xmlTransaction += '<ssl_cvv2cvc2>' + cvv + '</ssl_cvv2cvc2>\n';
-    xmlTransaction += '</txn>\n';
+        xmlTransaction += '<ssl_merchant_id>' + this.ssl_merchant_id + '</ssl_merchant_id>\n';
+        xmlTransaction += '<ssl_user_id>' + this.ssl_user_id + '</ssl_user_id>\n';
+        xmlTransaction += '<ssl_pin>' + this.ssl_pin + '</ssl_pin>\n';
+        xmlTransaction += '<ssl_test_mode>' + this.ssl_test_mode + '</ssl_test_mode>\n';
+        xmlTransaction += '<ssl_show_form>false</ssl_show_form>'
+        xmlTransaction += '<ssl_transaction_type>ccverify</ssl_transaction_type>\n';
+        xmlTransaction += '<ssl_card_number>' + cardNumber + '</ssl_card_number>\n';
+        xmlTransaction += '<ssl_exp_date>' + expirationMonth + expirationYear + '</ssl_exp_date>\n';
+        xmlTransaction += '<ssl_result_format>HTML</ssl_result_format>\n';
+        xmlTransaction += '<ssl_cvv2cvc2_indicator>1</ssl_cvv2cvc2_indicator>\n';
+        xmlTransaction += '<ssl_cvv2cvc2>' + cvv + '</ssl_cvv2cvc2>\n';
+        xmlTransaction += '</txn>\n';
 
-    var urlToPost = this.ssl_test_mode ? testURL : productionURL;
-    request.post({
-        url: urlToPost,
-        form: xmlTransaction
-    }, function (error, response, body) {
-        if (error) {
-            return deferred.reject(error);
-        }
-        xml2js.parseString(body, function (err, results) {
-            if (err) {
-                return deferred.reject(err);
+        var urlToPost = this.ssl_test_mode ? testURL : productionURL;
+        request.post({
+            url: urlToPost,
+            form: xmlTransaction
+        }, function (error, response, body) {
+            if (error) {
+                return reject(error);
             }
-            //clean the arrays
-            results = cleanXML(results);
-            return deferred.resolve(results);
+            xml2js.parseString(body, function (err, results) {
+                if (err) {
+                    return reject(err);
+                }
+                //clean the arrays
+                results = cleanXML(results);
+                return resolve(results);
+            });
         });
     });
-    return deferred.promise;
 };
 
 
